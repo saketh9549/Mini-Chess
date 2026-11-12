@@ -1,0 +1,172 @@
+MINI CHESS AI PROJECT - RULES SPECIFICATION
+Variant: Gardner's Minichess (5x5)
+==========================================================
+
+This file is the single source of truth for game rules and engine conventions.
+If the code and this file disagree, one of them is a bug. Section 1-3 are the
+canonical game rules. Sections 4-7 are project conventions (design choices).
+
+
+1. BOARD AND SETUP
+------------------
+1.1  The board is 5 files (a-e) by 5 ranks (1-5). 25 squares total.
+
+1.2  Square indexing (flat 1D array, size 25):
+         index = (rank - 1) * 5 + (file_letter - 'a')
+     So a1 = 0, e1 = 4, a5 = 20, e5 = 24.
+     White pawns move toward higher indices (+5), Black toward lower (-5).
+
+1.3  Piece encoding (signed integers):
+         White:  +1 Pawn, +2 Knight, +3 Bishop, +4 Rook, +5 Queen, +6 King
+         Black:  -1 ... -6 (same order)
+         Empty:   0
+
+1.4  Starting position (each side has 5 pawns + 5 pieces = 10 pieces):
+
+         5 | r  n  b  q  k       <- Black pieces
+         4 | p  p  p  p  p       <- Black pawns
+         3 | .  .  .  .  .
+         2 | P  P  P  P  P       <- White pawns
+         1 | R  N  B  Q  K       <- White pieces
+             a  b  c  d  e
+
+     Note: both kings start on the e-file (mirrored setup, not rotated).
+
+1.5  White moves first. Players alternate turns. Passing is not allowed.
+
+
+2. PIECE MOVEMENT
+-----------------
+2.1  King:    one square in any of the 8 directions.
+2.2  Queen:   any number of squares along a rank, file, or diagonal; cannot
+              jump over pieces.
+2.3  Rook:    any number of squares along a rank or file; cannot jump.
+2.4  Bishop:  any number of squares along a diagonal; cannot jump.
+2.5  Knight:  an L-shape (2 squares in one direction, 1 perpendicular);
+              the only piece that may jump over others.
+2.6  Pawn:
+       - Moves exactly ONE square forward onto an empty square.
+       - There is NO two-square initial move.
+       - Captures one square diagonally forward.
+       - There is NO en passant.
+
+2.7  A piece may not move onto a square occupied by a friendly piece.
+     Moving onto an enemy piece captures it (the enemy piece is removed).
+
+2.8  There is NO castling.
+
+
+3. PROMOTION, CHECK, AND GAME END
+---------------------------------
+3.1  Promotion: a pawn reaching the far rank (rank 5 for White, rank 1 for
+     Black) MUST be promoted immediately to a Queen, Rook, Bishop, or Knight
+     of its own color. Promotion applies to both pushes and captures.
+     Each promotion choice is a separate legal move for move generation.
+
+3.2  Check: a king is in check if an enemy piece could capture it on the
+     next move.
+
+3.3  Legality: a move is legal only if, after making it, the mover's own king
+     is NOT in check. A player in check must resolve the check on that move.
+
+3.4  Checkmate: the side to move is in check and has no legal move.
+     That side loses.
+
+3.5  Stalemate: the side to move is NOT in check and has no legal move.
+     The game is a draw.
+
+3.6  A king may never be captured in actual play. (Search code must never
+     generate or execute a king capture; legality filtering prevents it.)
+
+
+4. DRAW CONVENTIONS (PROJECT CHOICES)
+-------------------------------------
+These are not part of Gardner's original description. They are fixed here so
+that games terminate and results are reproducible.
+
+4.1  Threefold repetition: if the same position (piece placement + side to
+     move) occurs three times, the game is a draw.
+4.2  Fifty-move rule: if 50 full moves (100 plies) pass with no capture and
+     no pawn move, the game is a draw.
+4.3  Dead position: K vs K, K+N vs K, and K+B vs K are draws.
+4.4  Hard cap: any game exceeding 300 plies is adjudicated a draw (safety
+     net for tournaments; should rarely trigger).
+4.5  Inside search, treat a single repeat of a position on the current
+     search path as a draw (score 0). Document this choice in the report,
+     because it interacts with the transposition table.
+
+
+5. SCORING AND EVALUATION CONVENTIONS
+-------------------------------------
+5.1  Game result for tournaments: win = 1, draw = 0.5, loss = 0.
+5.2  Search scores are from the side-to-move perspective (negamax) or from
+     White's perspective (minimax); pick one and use it everywhere.
+5.3  Mate score: MATE = 100000. A mate found at ply p scores (MATE - p)
+     for the winner, so faster mates are preferred.
+5.4  Piece values (centipawns, starting weights before tuning):
+         Pawn 100, Knight 300, Bishop 300, Rook 500, Queen 900, King 0
+     (Starting weights only. Tuned values will replace these.)
+5.5  Draw score in search: 0.
+5.6  When storing mate scores in the transposition table, adjust by ply
+     on store and on retrieve, so scores stay correct across depths.
+
+
+6. ENGINE REQUIREMENTS
+----------------------
+6.1  State must contain: board[25], side to move, halfmove clock (for the
+     fifty-move rule), and a position history (for repetition).
+6.2  Zobrist hash must cover: each (piece, square) pair and side to move.
+     There are no castling or en passant terms in this variant.
+6.3  make_move / unmake_move must restore the state exactly. In debug mode,
+     assert that the incrementally updated hash equals a full recompute
+     after every make and unmake.
+6.4  Move generation must be validated with perft (leaf node counts at
+     depths 1-5) against a trusted reference engine before any search
+     work begins. Record the reference and the counts in the repo.
+6.5  Alpha-beta must return the same root value as plain minimax at the same
+     fixed depth. This is a mandatory regression test.
+6.6  Time control (iterative deepening): the clock is checked every N nodes
+     inside the search, not only between depths. If time expires mid-depth,
+     the best move from the last completed depth (or the already-searched
+     principal variation move at the partial depth) is played.
+
+
+7. TOURNAMENT AND BENCHMARK PROTOCOL
+------------------------------------
+7.1  Every matchup is played with colors swapped: for each opening, both
+     agents play White once and Black once.
+7.2  Use a fixed set of randomized openings (first 2-4 plies random, seeded)
+     so that games are not identical. Record the seed.
+7.3  For tuning and reproducibility, use FIXED DEPTH, not wall-clock time.
+     Wall-clock time is allowed only for final demonstration matches.
+7.4  Minimum 100 games per matchup. Report wins, draws, losses, and a
+     confidence interval on the score.
+7.5  Required opponents: Random bot, Greedy-material bot, untuned engine,
+     tuned engine. Optional: an external engine at limited depth.
+7.6  Report per search variant: nodes expanded per depth, measured effective
+     branching factor, time to reach each depth, and transposition table
+     hit rate.
+7.7  Ablations: at minimum, evaluate with and without quiescence search,
+     transposition table, move ordering, and each evaluation feature.
+
+
+APPENDIX A. IF YOU SWITCH TO LOS ALAMOS CHESS (6x6)
+---------------------------------------------------
+- Board is 6x6, 36 squares; index = (rank - 1) * 6 + file.
+- NO bishops. Pieces per side: King, Queen, 2 Rooks, 2 Knights, 6 Pawns.
+- Setup (rank 1, a to f): R N Q K N R, pawns on rank 2. Black mirrors on
+  rank 6 with pawns on rank 5.
+- Promotion on the far rank is to Queen, Rook, or Knight only.
+- No castling, no pawn double-step, no en passant (same as Gardner).
+- Piece encoding drops Bishop; renumber or leave a gap, but keep it
+  consistent across the board, Zobrist table, and evaluation tables.
+- Piece-square tables and Zobrist keys must be rebuilt for 36 squares.
+
+
+APPENDIX B. OPEN DECISIONS (FILL IN BEFORE WEEK 1)
+--------------------------------------------------
+[x] Variant confirmed: Gardner 5x5
+[x] Implementation language for the engine: Python 3
+[x] Negamax or minimax convention: Negamax (side-to-move perspective)
+[x] Reference engine used for perft validation: Independent 2D-grid reference engine (depths 1-5: 7, 53, 506, 4775, 52512)
+[x] Tuning method: Genetic Algorithm (GA) + Simulated Annealing (SA) + Hill Climbing (HC) in tune.py
