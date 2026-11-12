@@ -1,0 +1,12 @@
+Matchup_ID,Agent_1,Agent_2,Total_Games,Agent_1_Wins,Draws,Agent_1_Losses,Agent_1_Win_Rate_Pct,Agent_1_Score_Rate_Pct,CI_95_Low_Pct,CI_95_High_Pct,Avg_Game_Length_Plies,Checkmate_Rate_Pct
+1,TunedSearchAgent (d=4+Q),Baseline SearchAgent (d=4),100,71,16,13,71.0,79.0,72.0,86.0,42.9,84.0
+2,TunedSearchAgent (d=4+Q),Plain Minimax (d=3),100,92,8,0,92.0,96.0,93.3,98.7,40.5,92.0
+3,TunedSearchAgent (d=4+Q),GreedyBot (1-Ply),100,98,2,0,98.0,99.0,97.6,100.0,20.4,98.0
+4,TunedSearchAgent (d=4+Q),RandomBot,100,100,0,0,100.0,100.0,100.0,100.0,16.8,100.0
+5,Baseline SearchAgent (d=4),Plain Minimax (d=3),100,68,15,17,68.0,75.5,68.1,82.9,49.0,85.0
+6,Baseline SearchAgent (d=4),GreedyBot (1-Ply),100,96,4,0,96.0,98.0,96.1,99.9,26.1,96.0
+7,Baseline SearchAgent (d=4),RandomBot,100,100,0,0,100.0,100.0,100.0,100.0,17.7,100.0
+8,Plain Minimax (d=3),GreedyBot (1-Ply),100,97,0,3,97.0,97.0,93.7,100.0,24.9,100.0
+9,Plain Minimax (d=3),RandomBot,100,100,0,0,100.0,100.0,100.0,100.0,17.9,100.0
+10,GreedyBot (1-Ply),RandomBot,100,98,2,0,98.0,99.0,97.6,100.0,21.6,98.0
+

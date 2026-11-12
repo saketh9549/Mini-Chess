@@ -1,0 +1,9 @@
+Config_ID,Configuration_Name,Avg_Total_Nodes,Avg_Tree_Nodes_d4,Avg_Quiescence_Nodes,Effective_Branching_Factor_b_star,Avg_Time_ms,TT_Hit_Rate_Pct,Speedup_vs_Minimax_x
+1,Plain Negamax (Minimax d=4),13970.3,13970.3,0.0,10.72,730.0,0.0,1.00
+2,Alpha-Beta (No Ordering No TT),2153.9,2153.9,0.0,6.76,99.3,0.0,7.35
+3,Alpha-Beta + Move Ordering (No TT),536.4,536.4,0.0,4.69,25.5,0.0,28.63
+4,Alpha-Beta + TT (No Move Ordering),1467.2,1467.2,0.0,6.12,75.2,5.0,9.71
+5,Alpha-Beta + Ordering + TT (Material Only -PST),629.1,629.1,0.0,4.93,34.1,8.6,21.41
+6,Baseline SearchAgent (AB + Ordering + TT + PST + IDS),666.2,666.2,0.0,5.01,35.4,8.1,20.62
+7,TunedSearchAgent (+Quiescence +TunedEval),3507.3,211.9,3295.4,7.11,206.7,25.3,3.53
+

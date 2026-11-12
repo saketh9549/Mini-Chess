@@ -1,0 +1,7 @@
+Algorithm_ID,Algorithm_Name,Search_Depth,Pruning,Move_Ordering,Transposition_Table,Quiescence_Search,Eval_Function,Overall_Win_Rate_Pct,Overall_Score_Rate_Pct,Avg_Nodes_Per_Move,Avg_Tree_Nodes_d4,Avg_Quiescence_Nodes,Effective_Branching_Factor_b_star,Avg_Time_Per_Move_ms,Avg_Plies_To_Win
+1,RandomBot,0,No,No,No,No,None (Uniform Random),0.0,0.6,1.0,1.0,0.0,1.00,0.02,N/A
+2,GreedyBot (1-Ply),1,No,No,No,No,Baseline Material + PST,25.1,26.1,11.8,11.8,0.0,11.80,0.48,21.6
+3,Plain Minimax (Negamax d=3),3,No,No,No,No,Baseline Material + PST,51.9,54.1,1260.3,1260.3,0.0,10.65,60.24,21.4
+4,Baseline SearchAgent (Alpha-Beta d=4),4,Alpha-Beta,MVV-LVA + Killers + PST,Zobrist TT (64-bit),No,Baseline Material + PST,69.1,73.5,666.2,666.2,0.0,5.01,48.82,21.9
+5,TunedSearchAgent (Alpha-Beta d=4 + Quiescence),4,Alpha-Beta,PV + MVV-LVA + Killers,Zobrist TT (64-bit),Yes (Stand-Pat + Delta),Tuned Material + PST + PassedPawn + MopUp,90.4,93.6,3507.3,211.9,3295.4,4.69,206.70,25.1
+
